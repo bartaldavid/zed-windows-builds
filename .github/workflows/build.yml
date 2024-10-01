@@ -18,6 +18,25 @@ jobs:
           repository: zed-industries/zed
           ref: main
 
+      - name: Fix LSP issue
+        run: |
+          $file = "crates/extension/src/extension_lsp_adapter.rs"
+          $content = Get-Content $file -Raw
+          $newContent = $content -replace 'arguments: command\.args\.into_iter\(\)\.map\(\|arg\| arg\.into\(\)\)\.collect\(\),', @'
+          arguments: command
+              .args
+              .into_iter()
+              .map(|arg| {
+                  if let Some(arg) = arg.strip_prefix('/') {
+                      arg.into()
+                  } else {
+                      arg.into()
+                  }
+              })
+              .collect(),
+          '@
+          $newContent | Set-Content $file -NoNewline
+
       - name: Install rust nightly
         uses: actions-rs/toolchain@v1
         with:
